@@ -1,0 +1,75 @@
+# File Name       : N-gram (string matching program)
+# Software used   : Python 2.7.3
+# Author          : Amul Jani, University of Melbourne
+# Date            : 13/04/2015
+# Version         : 1.0
+# Files required  : "queries.1K.txt" and "tweets.3K.txt"
+# Files created   : "result.txt" in current workspace
+##################################################################
+
+import time
+
+start = time.time()
+qfile = "queries.1K.txt"
+tfile = "tweets.3K.txt"
+opfile = "result.txt"
+N = 2
+THRESHOLD = 2
+result = open(opfile, 'w')
+result.write("Results of N-gram matching with N=%d\n" %N)
+result.write("(words considered match if number of different n-grams are %d or less)\n" %(THRESHOLD))
+result.write("Input files: %s and %s\n" %(qfile, tfile))
+result.write("*************************************************************************\n")
+result.write("Query\t\t\t\t\t\t\t\tTweet\n")
+t = open(tfile,'r')
+for tweet in t:
+    tweet = tweet[:-1]
+    tweetWords = tweet.split()
+    ngramOfTweet = []
+    for tweetWord in tweetWords:
+        ngramOfWord = []
+        for count in range(len(tweetWord)+1-N):
+            pair = tweetWord[count:(count+N)]
+            if ((pair in ngramOfWord)==False):
+                ngramOfWord.append(pair)
+        ngramOfTweet.append(ngramOfWord)
+
+    q = open(qfile, 'r')
+    for query in q:
+        query = query[:-1]
+        queryWords = query.split()
+        ngramOfQuery = []
+        matchesFound = 0
+        for queryWord in queryWords:
+            ngramOfWord = []
+            for count in range(len(queryWord)+1-N):
+                pair = queryWord[count:(count+N)]
+                if ((pair in ngramOfWord) == False):
+                    ngramOfWord.append(pair)
+            ngramOfQuery.append(ngramOfWord)
+
+        for i in range(len(tweetWords)):
+            if (len(tweetWords[i])>=(N)):
+                common = 0
+                ngram = 0
+                if (len(ngramOfQuery[matchesFound])>=(N)):
+                    for pair in ngramOfQuery[matchesFound]:
+                        if (pair in ngramOfTweet[i]):
+                            common +=1
+                ngram = (len(ngramOfTweet[i])+len(ngramOfQuery[matchesFound])-(2*common))
+                if (ngram <= THRESHOLD):
+                    matchesFound+=1
+                elif((ngram > THRESHOLD) and (matchesFound > 0)):
+                    matchesFound = 0
+                if (matchesFound == len(queryWords)):
+                    result.write("%-25s ---> %s.\n" %(query, tweet))
+                    print
+                    break
+    q.close()
+t.close()
+result.write("*************************************************************************\n")
+result.write("End of results.\n")
+end = time.time()
+processingTime = end - start
+result.write("(processing time = %2dmin %2dsec)" %(processingTime/60, processingTime%60))
+result.close()
